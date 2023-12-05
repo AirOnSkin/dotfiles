@@ -1,1 +1,2 @@
 chezmoi.toml filter=git-crypt diff=git-crypt
+.chezmoi.toml filter=git-crypt diff=git-crypt
