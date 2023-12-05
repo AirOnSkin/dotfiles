@@ -2,16 +2,16 @@
 [core]
   pager = delta # https://dandavison.github.io/delta/
   editor = nvim
-  hooksPath = .githooks 
+  hooksPath = .githooks
   autocrlf = input # for linux & macos systems
   excludesfile = /home/stefan/.gitignore_global
 
 [user]
   name = AirOnSkin
-  email = aironskin@gmail.com
+  email = {{ .email }}
 
 [push]
-	autoSetupRemote = true
+  autoSetupRemote = true
 
 [pull]
   rebase = false
@@ -43,6 +43,7 @@
 [delta "chameleon"]
   # features
   dark = true
+  tabs = 2
   line-numbers = true
   side-by-side = true
   keep-plus-minus-markers = false

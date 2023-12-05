@@ -1,25 +1,25 @@
 [default]
 sso_session = {{ .aws.session }}
-sso_account_id = {{ .aws.accountId1 }}
+sso_account_id = {{ .aws.accountID1 }}
 sso_role_name = {{ .aws.role }}
 region = {{ .aws.region }}
 output = json
 
 [profile playground]
 sso_session = {{ .aws.session }}
-sso_account_id = {{ .aws.accountId2 }}
+sso_account_id = {{ .aws.accountID2 }}
 sso_role_name = {{ .aws.role }}
 region = {{ .aws.region }}
 output = json
 
 [profile torai]
 sso_session = {{ .aws.session }}
-sso_account_id = {{ .aws.accountId3 }}
+sso_account_id = {{ .aws.accountID3 }}
 sso_role_name = {{ .aws.role }}
 region = {{ .aws.region }}
 output = json
 
-[sso-session jobcloud]
+[sso-session {{ .aws.session }}]
 sso_start_url = {{ .aws.startUrl }}
 sso_region = {{ .aws.region }}
 sso_registration_scopes = sso:account:access
