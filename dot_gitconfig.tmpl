@@ -1,0 +1,94 @@
+# git defaults
+[core]
+  pager = delta # https://dandavison.github.io/delta/
+  editor = nvim
+  hooksPath = .githooks 
+  autocrlf = input # for linux & macos systems
+  excludesfile = /home/stefan/.gitignore_global
+
+[user]
+  name = AirOnSkin
+  email = aironskin@gmail.com
+
+[push]
+	autoSetupRemote = true
+
+[pull]
+  rebase = false
+
+[advice]
+  detachedHead = false
+
+[format]
+  pretty = "%C(bold green)%h%Creset - %s %C(yellow)(%cr) %Cblue<%an>%Creset"
+
+# ansible
+[diff "ansible-vault"]
+  textconv = ansible-vault view
+
+# delta configuration
+[interactive]
+  diffFilter = delta --color-only
+
+[delta]
+  navigate = true
+  features = chameleon
+
+[merge]
+  conflictstyle = diff3
+
+[diff]
+  colorMoved = default
+
+[delta "chameleon"]
+  # features
+  dark = true
+  line-numbers = true
+  side-by-side = true
+  keep-plus-minus-markers = false
+  syntax-theme = Nord
+
+  # file style
+  file-style = "#434C5E" bold
+  file-decoration-style = "#434C5E" ul
+  file-added-label = [+]
+  file-copied-label = [==]
+  file-modified-label = [*]
+  file-removed-label = [-]
+  file-renamed-label = [->]
+
+  # hunk header style
+  hunk-header-style = omit
+
+  # line numbers style
+  line-numbers-left-format = " {nm:>3} │"
+  line-numbers-left-style = red
+  line-numbers-right-format = " {np:>3} │"
+  line-numbers-right-style = green
+  line-numbers-minus-style = red italic black
+  line-numbers-plus-style = green italic black
+  line-numbers-zero-style = "#434C5E" italic
+
+  # diff style
+  minus-style = bold red # line removed
+  minus-emph-style = bold "#202020" red # changed part of line
+  minus-non-emph-style = bold # changed line backdrop
+  plus-style = bold green # line added
+  plus-emph-style = bold "#202020" green # changed part of line
+  plus-non-emph-style = bold # changed line backdrop
+
+  # unchanged lines style
+  zero-style = syntax
+
+  # style for git blame
+  blame-code-style = syntax
+  blame-format = "{author:<18} ({commit:>9}) {timestamp:^16}"
+  blame-palette = "#2E3440" "#3B4252" "#434C5E" "#4C566A"
+
+  # merge conflict style
+  merge-conflict-begin-symbol = ~
+  merge-conflict-end-symbol = ~
+  merge-conflict-ours-diff-header-style = yellow bold
+  merge-conflict-ours-diff-header-decoration-style = "#434C5E" box
+  merge-conflict-theirs-diff-header-style = yellow bold
+  merge-conflict-theirs-diff-header-decoration-style = "#434C5E" box

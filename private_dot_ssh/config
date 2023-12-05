@@ -1,0 +1,8 @@
+Host *
+KeepAlive yes
+ServerAliveInterval 120
+StrictHostKeyChecking no
+UserKnownHostsFile /dev/null
+IdentityFile ~/.ssh/id_ed25519
+AddKeysToAgent yes
+LogLevel ERROR

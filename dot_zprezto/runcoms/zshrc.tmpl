@@ -1,0 +1,499 @@
+# ~/.zshrc
+
+# Source Prezto
+if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]] ; then
+  source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
+fi
+
+# CUSTOMIZATION
+
+# FZF ZSH integration & Dracula colors
+[[ -f ~/.fzf.zsh ]] && source ~/.fzf.zsh
+export FZF_DEFAULT_OPTS='--color=fg:#f8f8f2,hl:#bd93f9 --color=fg+:#f8f8f2,hl+:#bd93f9 --color=info:#ffb86c,prompt:#50fa7b,pointer:#ff79c6 --color=marker:#ff79c6,spinner:#ffb86c,header:#6272a4'
+
+# PATH
+export PATH="/home/stefan/.local/awscli/bin:/home/stefan/.local/awsebcli/bin:/home/stefan/.local/bin:/home/stefan/.pulumi/bin:${PATH}"
+
+# HISTORY
+export HISTSIZE=100000
+export SAVEHIST=${HISTSIZE}
+
+# OPTIONS
+setopt clobber
+setopt hist_ignore_all_dups
+setopt hist_ignore_space
+
+# Default EDITOR
+export EDITOR=nvim
+
+# bat
+BAT_THEME="Dracula"
+export BAT_STYLE="numbers,changes"
+
+# man
+export MANPAGER="sh -c 'col -bx | bat -l man -p'"
+
+# LESS colors
+export LESS=-R
+export LESS_TERMCAP_me=$(printf '\e[0m')
+export LESS_TERMCAP_se=$(printf '\e[0m')
+export LESS_TERMCAP_ue=$(printf '\e[0m')
+export LESS_TERMCAP_mb=$(printf '\e[0;38;5;217m')
+export LESS_TERMCAP_md=$(printf '\e[0;38;5;147m')
+export LESS_TERMCAP_us=$(printf '\e[0;38;5;217m')
+export LESS_TERMCAP_so=$(printf '\e[0;38;5;229m')
+
+# Set TERM to something the system knows
+export TERM=xterm-256color
+
+# ZSH autosuggestions highlight color
+export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=244'
+
+# don't underline file paths
+(( ${+ZSH_HIGHLIGHT_STYLES} )) || typeset -A ZSH_HIGHLIGHT_STYLES
+ZSH_HIGHLIGHT_STYLES[path]=none
+ZSH_HIGHLIGHT_STYLES[path_prefix]=none
+
+# Ansible Vault
+export ANSIBLE_VAULT_IDENTITY_LIST=$(grep 'vault_identity_list' "${HOME}/JobCloud/git/ansible/aws/ansible.cfg" | awk -F ' ' '{print $3}')
+
+# ALIASES
+
+# General aliases
+alias ls='exa -lg'
+alias lt='exa -lT'
+alias la='exa -lga'
+alias l='exa -1'
+alias vi='nvim'
+alias vim='nvim'
+alias vimdiff='nvim -d'
+alias more='less'
+alias mkdir='mkdir -p -v'
+alias cp='cp -v'
+alias mv='mv -v'
+alias rm='rm -v'
+alias fd='fd -H --strip-cwd-prefix'
+alias grep='rg -Ni'
+alias g='rg -Ni'
+alias ps='ps faux | g -v ps'
+alias psg='ps | rg -v rg | g'
+alias ..='cd ..'
+alias ...='cd ../../'
+alias ....='cd ../../../'
+alias .....='cd ../../../../'
+alias du='du -sh'
+alias df='df -PTh'
+alias cat='bat -P'
+alias watch='viddy'
+alias ping='ping -c 3'
+alias wget='wget -nv'
+alias curl='curl -s'
+alias mysql='mysql -A -b'
+alias gl='git log -10'
+alias gc='compare_git_commits'
+alias dps='docker ps --format "table {{.ID}}\t{{.Image}}\t{{.Status}}"'
+alias disks='sudo fdisk -l'
+alias ifconfig='ip addr | g inet | g -v "host|inet6" | sed "s/secondary //g"'
+#alias follow='less -S+F'
+alias gfile='cut -d":" -f1 | sort -u'
+alias gproject='gfile | cut -d"/" -f1 | sort -u'
+alias gws='rg -i " $|\t"' # grep tabs & spaces at end of lines
+alias gnnl='grep_no_new_line' # grep no new line at end of file
+alias gnbs='rg -e "[\xC2\xA0]" *' # grep non-breaking spaces
+#alias fnbs='for file in $( fd -tf ; fd -tx ) ; do sed -i "s/\xC2\xA0/ /g" "${file}" ; done' # grep non-breaking spaces
+alias ansible-playbook-internal='ansible-playbook --extra-vars "env=internal"'
+alias ansible-playbook-prod='ansible-playbook --extra-vars "env=prod"'
+alias ansible-playbook-qa='ansible-playbook --extra-vars "env=qa"'
+
+# Go aliases
+alias gob='go build -ldflags="-s -w"'
+
+# Aura alias
+alias aura='sudo aura'
+
+# Pacman aliases
+alias pacman='sudo pacman'
+alias pac-update='pacman -Sy'
+alias pac-upgrade='pacman -Su'
+alias pac-install='pacman -S'
+alias pac-remove='pacman -Rsn'
+alias pac-search='pacman -Ss'
+alias pac-localsearch='pacman -Qs'
+alias pac-info='pacman -Si'
+alias pac-orphans='pacman -Qdt'
+alias pac-clean='pacman -Scc'
+alias pac-aurlist='pacman -Qm'
+
+# SSH shortcuts
+alias arvin='ssh -l stefan 192.168.1.50'
+alias space='ssh -l admin 192.168.1.1'
+
+# Colorized pacman search output
+alias psearch="colorsearch"
+colorsearch () {
+
+  echo -e "$(pacman -Ss $@ | sed \
+  -e 's#core/.*#\\033[0;38;5;242m&\\033[0;37m#g' \
+  -e 's#extra/.*#\\033[0;38;5;204m&\\033[0;37m#g' \
+  -e 's#community/.*#\\033[0;38;5;229m&\\033[0;37m#g' \
+  -e 's#^.*/.* [0-9].*#\\033[0;38;5;37m&\\033[0;37m#g' )"
+
+}
+
+# Source bash-helper-functions components
+source ~/JobCloud/git/bash-helpers-library/colors.sh
+source ~/JobCloud/git/bash-helpers-library/aws_functions.sh
+source ~/JobCloud/git/bash-helpers-library/aws_environment.sh
+
+# jobcloud init function (aws sso, ecr, ssh keys)
+jc_init () {
+
+  echo
+
+  # set profile
+  if [[ -n "${1}" ]] ; then
+    profile="${1}"
+  else
+    profile="default"
+  fi
+  echo -e "${ink_gray}Selected AWS profile: ${ink_blue}${profile}${ink_clear}\\n"
+
+  # aws sso
+  echo -n "${ink_gray}AWS SSO login: "
+  if aws sso login --profile "${profile}" > /dev/null ; then
+    echo -n "${ink_green}SUCCEEDED${ink_clear}"
+  else
+    echo -n "${ink_red}FAILED${ink_clear}"
+  fi ; echo
+
+  # aws sso session envvars
+  awsAccountId="$(aws configure get sso_account_id --profile ${profile})"
+  awsRegion="$(aws configure get sso_region --profile ${profile})"
+  awsRole="$(aws configure get sso_role_name --profile ${profile})"
+
+  session=$(aws sso get-role-credentials \
+    --account-id "${awsAccountId}" \
+    --role-name "${awsRole}" \
+    --access-token "$(cat ~/.aws/sso/cache/*.json | jq -r '.accessToken | select( . != null )' | head -1)" \
+    --region "${awsRegion}")
+
+  AWS_ACCESS_KEY_ID=$(jq -r '.roleCredentials.accessKeyId' <<< "${session}")
+  AWS_SECRET_ACCESS_KEY=$(jq -r '.roleCredentials.secretAccessKey' <<< "${session}")
+  AWS_SESSION_TOKEN=$(jq -r '.roleCredentials.sessionToken' <<< "${session}")
+
+  touch ~/.aws/envvars
+  echo -n > ~/.aws/envvars
+  echo "export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}" >> ~/.aws/envvars
+  echo "export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}" >> ~/.aws/envvars
+  echo "export AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}" >> ~/.aws/envvars
+
+  source ~/.aws/envvars
+
+  # aws ecr
+  echo -n "${ink_gray}AWS ECR login: "
+  if ecr_login ; then
+    echo -n "${ink_green}SUCCEEDED${ink_clear}"
+  else
+    echo -n "${ink_red}FAILED${ink_clear}"
+  fi ; echo
+
+  # AWS console browser session
+  xdg-open 'https://d-936700e7c9.awsapps.com/start#/' 2> /dev/null
+
+  # ssh keys
+  echo -e "\\n${ink_gray}Adding SSH private keys ...${ink_clear}\\n"
+  ssh-add ~/.ssh/ce ; echo
+
+}
+source ~/.aws/envvars
+
+aws-session () {
+
+  accountName="${1}"
+  binDir="${HOME}/JobCloud/git/cloud-tools/aws-session/bin"
+  binName="aws-session-linux-amd64"
+
+  case "${accountName}" in
+    jobcloud)
+      accountId="864261092842" ;;
+    playground)
+      accountId="" ;;
+    torai)
+      accountId="579888146138" ;;
+  esac
+
+  if [[ -z "${accountId}" ]] ; then
+    echo -e "\\nInvalid account\\n" ; exit 1
+  fi
+
+  "${binDir}"/"${binName}" \
+    -a "${accountId}" \
+    -n AWSAdministratorAccess \
+    -s https://jobcloud-sso.awsapps.com/start \
+    -r eu-west-1
+
+  source "${HOME}"/.aws/envvars
+
+}
+
+# global git actions function
+gga () {
+
+  usage () {
+    echo -e "
+gga [action] [options]
+
+  actions (exactly one required):
+    -s (status)
+    -b (branch)
+    -d (diff)
+    -f (fetch & pull)
+
+  options (optional):
+    -q (quick mode: less verbose, uses parallel)
+    -p dirName (run commands on a non-default directory)
+    "
+  }
+
+  while getopts "sbdfqp:" opt ; do
+    case "${opt}" in
+      s) local action="status" ;;
+      b) local action="branch" ;;
+      d) local action="diff" ;;
+      f) local action="fetch" ;;
+      q) local parallel="true" ;;
+      p) local gitPath="${OPTARG}" ;;
+      *) usage ; return 1 ;;
+    esac
+  done
+
+  rootDir="${HOME}/JobCloud"
+  if [[ -z "${gitPath}" ]] ; then
+    gitDir="git"
+  else
+    gitDir="${gitPath}"
+  fi
+
+  echo
+
+  # sequential processing
+  if [[ -z "${parallel}" ]] ; then
+    if [[ "${action}" == 'fetch' ]] ; then
+      (
+        cd "${rootDir}/${gitDir}"
+        for dir in * ; do
+          echo "${ink_blue}${dir}:${ink_clear}"
+          (
+            cd "${dir}"
+            git fetch -p origin && git pull
+          )
+          echo
+        done
+      )
+    else
+      (
+        cd "${rootDir}/${gitDir}"
+        for dir in * ; do
+          echo "${ink_blue}${dir}:${ink_clear}"
+          (
+            cd "${dir}"
+            git "${action}"
+          )
+          echo
+        done
+      )
+    fi
+  fi
+
+  # parallel processing
+  if [[ -n "${parallel}" ]] ; then
+    case "${action}" in
+      status)
+        parallel "( cd ${rootDir}/${gitDir}/{} ; git status )" ::: $(ls -1 "${rootDir}/${gitDir}") ;;
+      branch)
+        parallel "( cd ${rootDir}/${gitDir}/{} ; git branch )" ::: $(ls -1 "${rootDir}/${gitDir}") ;;
+      diff)
+        parallel "( cd ${rootDir}/${gitDir}/{} ; git diff )" ::: $(ls -1 "${rootDir}/${gitDir}") ;;
+      fetch)
+        parallel "( cd ${rootDir}/${gitDir}/{} ; git fetch -p origin && git pull )" ::: $(ls -1 "${rootDir}/${gitDir}") ;;
+    esac
+  fi
+
+}
+
+# git compare two commits for defined repository
+compare_git_commits () {
+
+  # input vars
+  repo="${1}"
+  startCommit="${2}"
+  endCommit="${3}"
+
+  # on linux
+  xdg-open "https://github.com/jobcloud/${repo}/compare/${startCommit}..${endCommit}"
+  # on macos
+  #open "https://github.com/jobcloud/${repo}/compare/${startCommit}..${endCommit}"
+
+}
+
+check_lonely_git_branches () {
+
+  repoDir="${HOME}/JobCloud/git"
+  repoList=$(ls -1d "${repoDir}"/*)
+
+  echo
+
+  while IFS= read -r repoPath ; do
+    repo=$(basename "${repoPath}")
+    echo -e "${ink_blue}${repo}${ink_clear}"
+    "${repoDir}"/ce-scripts/scripts/github_lonely_branches.sh "${repo}"
+  done <<< "${repoList}"
+
+}
+
+# list files that don't contain an empty line at end of file
+grep_no_new_line () {
+
+  for file in $( fd -tf ; fd -tx ) ; do
+    (
+      if ( diff /dev/null "${file}" | tail -1 | rg -Niq '^\\ No newline at end of file' ) ; then
+        echo "${file}"
+      fi
+    )
+  done
+
+}
+
+# ansible diff (compare stage with prod)
+ansible_diff () {
+
+  file="${1}"
+
+  vimdiff "${file}" ../prod/"${file}"
+
+}
+
+# ansible vault diff (compare branch with main)
+ansible_vault_diff () {
+
+  # exit if not in ansible/aws directory
+  if [[ "$(pwd | rev | cut -d'/' -f1:2 | rev)" != "ansible/aws" ]] ; then
+    echo -e "\\nYou need to be in the ansible/aws directory for the function to work properly\\n"
+    return 1
+  fi
+  
+  # fetch list of files that have been changed compared to main
+  modifiedFiles=$(git diff --name-status main | awk 'match($1, /A|M/){print $2}' | grep 'aws/' | sed 's/aws\///' | sort)
+  
+  # filter Ansible Vault files
+  vaultFiles=$(
+    while IFS= read -r mFile ; do
+      if set -o pipefail ; head -1 "${mFile}" | grep -q 'ANSIBLE_VAULT' ; then
+        echo "${mFile}"
+      fi
+    done <<< "${modifiedFiles}"
+  )
+
+  # exit early if no Anisble Vault files have been changed
+  if [[ -z "${vaultFiles}" ]] ; then return 0 ; fi
+
+  echo
+
+  # diff each Ansible Vault file
+  while IFS= read -r vFile ; do
+    echo "${ink_blue}${vFile}:${ink_clear}"
+    diff \
+      --old-group-format=$'\e[0;31m%<\e[0m' \
+      --new-group-format=$'\e[0;32m%>\e[0m' \
+      --unchanged-group-format='' \
+      <(ansible-vault view <(git show main:"aws/${vFile}")) \
+      <(ansible-vault view <(git show HEAD:"aws/${vFile}"))
+      echo
+  done <<< "${vaultFiles}"
+
+}
+
+# parse files in the Ansible repository and replace common variables
+ansible_replace_vars () {
+
+  # static vars
+  groupVars="${HOME}/JobCloud/git/ansible/aws/inventories/group_vars/all.yml"
+  region="$(g region ${groupVars} | g -v 'ecr_prefix' | sed 's/"//g' | cut -d' ' -f2)"
+  account="$(g aws_account ${groupVars} | g -v 'ecr_prefix' | sed 's/"//g' | cut -d' ' -f2)"
+
+  # input vars
+  file="${1}"
+
+  # parse the file
+  sed -e "s/{{ region }}/${region}/g" -e "s/{{ aws_account }}/${account}/g" "${file}" | cat -p -l json --paging=never
+
+}
+
+# update aws cli
+update_aws_cli () {
+
+  # variables
+  installDir="${HOME}/.local/awscli"
+  archiveName="awscliv2.zip"
+  
+  # download latest linux archive
+  curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "${archiveName}"
+  
+  # unzip archive
+  unzip -q "${archiveName}"
+  
+  # update the AWS CLI
+  aws/install --bin-dir "${installDir}/bin" --install-dir "${installDir}" --update
+  
+  # cleanup
+  rm -r aws "${archiveName}" > /dev/null
+
+}
+
+# fetch root password for given RDS cluster
+fetch_rds_root_password () {
+
+  rdsCluster="${1}"
+
+  secretName=$(\
+    aws secretsmanager list-secrets \
+    --filters Key=tag-key,Values=Name Key=tag-value,Values="${rdsCluster}" \
+    | jq -r '.SecretList[].Name')
+  aws secretsmanager get-secret-value \
+    --secret-id "${secretName}" \
+    | jq -r '.SecretString | fromjson | .password'
+
+}
+
+# remove string from history
+fail () {
+
+  HISTFILE=/dev/null ; sed -i '$ d' ~/.zsh_history
+  HISTFILE=~/.zsh_history
+
+}
+
+# 256 colors
+256_colors () {
+
+  local o= i= x=$(tput op) cols=$(tput cols) y= oo= yy=
+  y=$(printf %$(($cols-6))s)
+  yy=${y// /=}
+
+  for i in {0..15} ; do
+    o=00${i}
+    oo=$(echo -en "setaf ${i}\nsetab ${i}\n"|tput -S)
+    echo -e "${o:${#o}-3:3} ${oo}${yy}${x}"
+  done
+
+}
+
+# Auto completion
+autoload bashcompinit && bashcompinit
+autoload -Uz compinit && compinit
+
+# Completion for AWS CLI
+complete -C /usr/bin/aws_completer aws
+
+# Completion for Serverless
+[ -f ~/.config/tabtab/__tabtab.bash ] && . ~/.config/tabtab/__tabtab.bash || true
