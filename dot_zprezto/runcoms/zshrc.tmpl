@@ -259,6 +259,22 @@ aws-session () {
 
 }
 
+# connect to an EC2 instance
+ssm-session () {
+
+  roleTag="${1}"
+  instanceId="$(aws ec2 describe-instances \
+    --filters "Name=tag:Role,Values=${roleTag}" \
+    --query "Reservations[*].Instances[*].InstanceId" \
+    --output text)"
+
+  aws ssm start-session \
+    --target "${instanceId}" \
+    --document-name AWS-StartInteractiveCommand \
+    --parameters 'command=["bash"]'
+
+}
+
 # make sure the current shell uses session credentials from the Torai account
 verify_torai_session () {
 
