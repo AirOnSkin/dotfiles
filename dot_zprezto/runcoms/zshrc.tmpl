@@ -12,7 +12,7 @@ fi
 export FZF_DEFAULT_OPTS='--color=fg:#f8f8f2,hl:#bd93f9 --color=fg+:#f8f8f2,hl+:#bd93f9 --color=info:#ffb86c,prompt:#50fa7b,pointer:#ff79c6 --color=marker:#ff79c6,spinner:#ffb86c,header:#6272a4'
 
 # PATH
-export PATH="/home/stefan/.local/bin:/home/stefan/.pulumi/bin:${PATH}"
+export PATH="${HOME}/.local/bin:${PATH}:${HOME}/.pulumi/bin:"
 
 # HISTORY
 export HISTSIZE=100000
@@ -33,7 +33,7 @@ export LS_COLORS="$(vivid generate one-dark)"
 export LESS="-i -M -R -S -X -z-4"
 
 # bat
-BAT_THEME="Dracula"
+export BAT_THEME="Dracula"
 export BAT_STYLE="numbers,changes"
 
 # man
@@ -583,9 +583,9 @@ fail () {
 
 }
 
-# Auto completion
+# auto completion
 autoload bashcompinit && bashcompinit
 autoload -Uz compinit && compinit
 
-# Completion for AWS CLI
+# aws cli auto completion
 complete -C /usr/bin/aws_completer aws
