@@ -99,7 +99,7 @@ alias dps='docker ps --format "table {{ .zshrc.dpsCmdID }}\t{{ .zshrc.dpsCmdImag
 alias gws='rg -i " $|\t"' # grep tabs & spaces at end of lines
 alias gnnl='grep_no_new_line' # grep no new line at end of file
 alias gnbs='rg -e "[\xC2\xA0]" *' # grep non-breaking spaces
-alias gds="ag '(?<!\s)  ' | rg -Niv 'vars_templates|#|mount_devices.sh.j2|chrony.conf|output.sh'" # grep for double spaces from the back
+alias gds="ag '(?<!\s)  ' | rg -Niv 'vars_templates|#|mount_devices.sh.j2|chrony.conf|output.sh|install.sh.j2'" # grep for double spaces from the back
 alias ac='gws ; gnnl ; gds'
 alias ansible-playbook-internal='ansible-playbook --extra-vars "env=internal"'
 alias ansible-playbook-prod='ansible-playbook --extra-vars "env=prod"'
@@ -169,8 +169,20 @@ less () {
 
 }
 
+# parse & replace a json file with jq
+parse_json () {
+
+  file="${1}"
+
+  jq -r . < "${file}" > "${file}_parsed"
+  unalias mv ; mv "${file}_parsed" "${file}"
+
+  cat -p "${file}"
+
+}
+
 # jobcloud init function
-jc_init () {
+awsauth () {
 
   echo
 
