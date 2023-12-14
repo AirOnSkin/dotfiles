@@ -96,7 +96,7 @@ alias mysql='mysql -A -b'
 alias disks='sudo fdisk -l'
 alias gl='git log -10 --abbrev=16'
 alias dps='docker ps --format "table {{ .zshrc.dpsCmdID }}\t{{ .zshrc.dpsCmdImage }}\t{{ .zshrc.dpsCmdStatus }}"'
-alias gws='rg -i " $|\t"' # grep tabs & spaces at end of lines
+alias gws="rg -i ' $|\t' | rg -Niv 'install.sh.j2'" # grep tabs & spaces at end of lines
 alias gnnl='grep_no_new_line' # grep no new line at end of file
 alias gnbs='rg -e "[\xC2\xA0]" *' # grep non-breaking spaces
 alias gds="ag '(?<!\s)  ' | rg -Niv 'vars_templates|#|mount_devices.sh.j2|chrony.conf|output.sh|install.sh.j2'" # grep for double spaces from the back
@@ -137,7 +137,6 @@ alias pac-search="colorsearch"
 colorsearch () {
 
   echo -e "$(pacman -Ss ${@} | sed \
-
   -e 's#core/.*#\\033[0;38;5;242m&\\033[0;37m#g' \
   -e 's#extra/.*#\\033[0;38;5;204m&\\033[0;37m#g' \
   -e 's#community/.*#\\033[0;38;5;229m&\\033[0;37m#g' \
@@ -181,7 +180,7 @@ parse_json () {
 
 }
 
-# jobcloud init function
+# aws auth function
 awsauth () {
 
   echo
@@ -278,12 +277,13 @@ ssm-session () {
   instanceId="$(aws ec2 describe-instances \
     --filters "Name=tag:Role,Values=${roleTag}" \
     --query "Reservations[*].Instances[*].InstanceId" \
-    --output text)"
+    --output text \
+  | awk '{print $1}')"
 
   aws ssm start-session \
     --target "${instanceId}" \
     --document-name AWS-StartInteractiveCommand \
-    --parameters 'command=["bash"]'
+    --parameters 'command=["cd /home/ssm-user ; exec bash"]'
 
 }
 
